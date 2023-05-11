@@ -1,5 +1,6 @@
 // TODO:
 //  - get width and height command line args working
+//  - add README
 //  - general refactoring
 //    - break out command line arguments parsing
 //    - break out logic that converts the image
