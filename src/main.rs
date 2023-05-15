@@ -13,6 +13,7 @@ use std::env;
 
 const DEFAULT_OUTPUT_SIZE: u32 = 50;
 const SHADING_CHARS: &str = " \u{2591}\u{2592}\u{2593}\u{2588}";
+const ASCII_SHADING_CHARS: &str = " .:-=+*#%@";
 
 fn main() {
     if env::args().len() < 2 {
