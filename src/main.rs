@@ -1,12 +1,11 @@
 // TODO:
-//  - get width and height command line args working
-//  - add README
 //  - general refactoring
 //    - break out command line arguments parsing
 //    - break out logic that converts the image
 //  - make command line arguments more explicit
 //    - add a "-h" flag to display the help message
 //    - give width and height a flag, like "--width" or "--height"
+//  - add README
 
 use image::{DynamicImage, GenericImageView};
 use std::env;
@@ -26,19 +25,24 @@ fn main() {
         None => panic!("Did not find image path as first command line argument!"),
     };
 
-    let scaling_factor: u32 = match env::args().nth(2) {
+    let output_width: u32 = match env::args().nth(2) {
         Some(f) => match f.parse::<u32>() {
             Ok(v) => v,
-            Err(_) => panic!(
-                "Could not parse second command line argument '{}' as u32!",
-                f
-            ),
+            Err(_) => panic!("Could not parse width argument '{}' as u32!", f),
+        },
+        None => DEFAULT_OUTPUT_SIZE,
+    };
+
+    let output_height: u32 = match env::args().nth(3) {
+        Some(f) => match f.parse::<u32>() {
+            Ok(v) => v,
+            Err(_) => panic!("Could not parse width argument '{}' as u32!", f),
         },
         None => DEFAULT_OUTPUT_SIZE,
     };
 
     let image = image::open(img_path).unwrap();
-    let text_output = textify_my_img(image, scaling_factor);
+    let text_output = textify_my_img(image, output_width, output_height);
 
     println!("{}", text_output);
 }
@@ -78,15 +82,15 @@ fn print_help_message() {
     )
 }
 
-fn textify_my_img(input_img: DynamicImage, scaling_factor: u32) -> String {
+fn textify_my_img(input_img: DynamicImage, out_width: u32, out_height: u32) -> String {
     let mut text = String::new();
-    let (width, height) = input_img.dimensions();
-    let width_factor = width as f32 / scaling_factor as f32;
-    let height_factor = height as f32 / scaling_factor as f32;
+    let (in_width, in_height) = input_img.dimensions();
+    let width_factor = in_width as f32 / out_width as f32;
+    let height_factor = in_height as f32 / out_height as f32;
 
-    for col in 0..scaling_factor {
-        for row in 0..scaling_factor {
-            // get cropped view of image
+    for col in 0..out_height {
+        for row in 0..out_width {
+            // get crop of image to convert to single text char
             let x = row as f32 * width_factor;
             let y = col as f32 * height_factor;
             let crop = input_img.crop_imm(
