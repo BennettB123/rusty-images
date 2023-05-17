@@ -1,6 +1,4 @@
 // TODO:
-//  - general refactoring
-//    - break out logic that converts the image
 //  - add README
 
 use image::{DynamicImage, GenericImageView};
@@ -9,7 +7,7 @@ use std::env;
 mod args_parser;
 use args_parser::{ArgsParsingError, CommandLineArgs};
 
-const SHADING_CHARS: &str = " \u{2591}\u{2592}\u{2593}\u{2588}";
+const SHADING_CHARS: [char; 5] = [' ', '\u{2591}', '\u{2592}', '\u{2593}', '\u{2588}'];
 
 fn main() {
     let args = match CommandLineArgs::parse(env::args().collect()) {
@@ -62,7 +60,7 @@ Notes:
     These values should be tweaked until the result best matches the
     input image.
 ",
-        SHADING_CHARS,
+        String::from_iter(SHADING_CHARS),
         args_parser::CommandLineArgs::DEFAULT_OUTPUT_SIZE
     )
 }
@@ -122,13 +120,13 @@ fn get_character_from_brightness(brightness: f32) -> char {
         new_b = 1.0;
     }
 
-    let num_shading_chars = SHADING_CHARS.chars().count();
+    let num_shading_chars = SHADING_CHARS.len();
 
     let mut index: usize = (num_shading_chars as f32 * new_b).floor() as usize;
     if index >= num_shading_chars {
         index = num_shading_chars - 1;
     }
-    return SHADING_CHARS.chars().nth(index).unwrap();
+    return SHADING_CHARS[index];
 }
 
 fn map_range(from_range: (f32, f32), to_range: (f32, f32), s: f32) -> f32 {
