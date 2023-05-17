@@ -1,11 +1,11 @@
 // Enumeration for basic errors that can occur while parsing command line arguments
-
 pub enum ArgsParsingError {
     NoFileProvided(String),
     CannotParseWidthOrHeight(String),
     HelpRequested,
 }
 
+// struct to hold relevant command line arguments
 pub struct CommandLineArgs {
     pub image_path: String,
     pub output_width: u32,
@@ -23,38 +23,41 @@ impl CommandLineArgs {
             }
         }
 
-        let mut image_path = "";
-        let mut output_width = CommandLineArgs::DEFAULT_OUTPUT_SIZE;
-        let mut output_height = CommandLineArgs::DEFAULT_OUTPUT_SIZE;
+        // try to get image path
+        let image_path: &str = match args.get(1) {
+            Some(path) => path,
+            None => {
+                return Err(ArgsParsingError::NoFileProvided(String::from(
+                    "A path to an input image is required\n",
+                )))
+            }
+        };
 
-        if args.len() < 2 {
-            return Err(ArgsParsingError::NoFileProvided(String::from(
-                "A path to an input image is required",
-            )));
-        }
-        if args.len() >= 2 {
-            image_path = &args[1];
-        }
-        if args.len() >= 3 {
-            output_width = match args[2].parse() {
+        // try to get width
+        let output_width: u32 = match args.get(2) {
+            Some(w_str) => match w_str.parse() {
                 Ok(w) => w,
                 Err(err) => {
                     return Err(ArgsParsingError::CannotParseWidthOrHeight(String::from(
-                        format!("Unable to parse width '{}'. Error: {}", args[2], err),
+                        format!("Unable to parse width '{}'.\nError: {}\n", args[2], err),
                     )))
                 }
-            };
-        }
-        if args.len() >= 4 {
-            output_height = match args[3].parse() {
-                Ok(w) => w,
+            },
+            None => CommandLineArgs::DEFAULT_OUTPUT_SIZE,
+        };
+
+        // try to get height
+        let output_height = match args.get(3) {
+            Some(h_str) => match h_str.parse() {
+                Ok(h) => h,
                 Err(err) => {
                     return Err(ArgsParsingError::CannotParseWidthOrHeight(String::from(
-                        format!("Unable to parse height '{}'. Error: {}", args[3], err),
+                        format!("Unable to parse height '{}'.\nError: {}\n", args[3], err),
                     )))
                 }
-            };
-        }
+            },
+            None => CommandLineArgs::DEFAULT_OUTPUT_SIZE,
+        };
 
         Ok(CommandLineArgs {
             image_path: image_path.to_owned(),

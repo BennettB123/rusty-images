@@ -10,7 +10,6 @@ mod args_parser;
 use args_parser::{ArgsParsingError, CommandLineArgs};
 
 const SHADING_CHARS: &str = " \u{2591}\u{2592}\u{2593}\u{2588}";
-const ASCII_SHADING_CHARS: &str = " .:-=+*#%@";
 
 fn main() {
     let args = match CommandLineArgs::parse(env::args().collect()) {
@@ -32,7 +31,7 @@ fn main() {
         Ok(img) => img,
         Err(err) => {
             println!("Could not read image file with path '{}'.", args.image_path);
-            println!("Error: {err}");
+            println!("Error: {err}\n");
             return;
         }
     };
