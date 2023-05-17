@@ -1,84 +1,70 @@
 // TODO:
 //  - general refactoring
-//    - break out command line arguments parsing
 //    - break out logic that converts the image
-//  - make command line arguments more explicit
-//    - add a "-h" flag to display the help message
-//    - give width and height a flag, like "--width" or "--height"
 //  - add README
 
 use image::{DynamicImage, GenericImageView};
 use std::env;
 
-const DEFAULT_OUTPUT_SIZE: u32 = 50;
+mod args_parser;
+use args_parser::{ArgsParsingError, CommandLineArgs};
+
 const SHADING_CHARS: &str = " \u{2591}\u{2592}\u{2593}\u{2588}";
 const ASCII_SHADING_CHARS: &str = " .:-=+*#%@";
 
 fn main() {
-    if env::args().len() < 2 {
-        print_help_message();
-        return;
-    }
-
-    let img_path = match env::args().nth(1) {
-        Some(f) => f,
-        None => panic!("Did not find image path as first command line argument!"),
-    };
-
-    let output_width: u32 = match env::args().nth(2) {
-        Some(f) => match f.parse::<u32>() {
-            Ok(v) => v,
-            Err(_) => panic!("Could not parse width argument '{}' as u32!", f),
+    let args = match CommandLineArgs::parse(env::args().collect()) {
+        Ok(args) => args,
+        Err(parse_error) => match parse_error {
+            ArgsParsingError::NoFileProvided(err)
+            | ArgsParsingError::CannotParseWidthOrHeight(err) => {
+                println!("{}", err);
+                return;
+            }
+            ArgsParsingError::HelpRequested => {
+                print_help_message();
+                return;
+            }
         },
-        None => DEFAULT_OUTPUT_SIZE,
     };
 
-    let output_height: u32 = match env::args().nth(3) {
-        Some(f) => match f.parse::<u32>() {
-            Ok(v) => v,
-            Err(_) => panic!("Could not parse width argument '{}' as u32!", f),
-        },
-        None => DEFAULT_OUTPUT_SIZE,
+    let image = match image::open(&args.image_path) {
+        Ok(img) => img,
+        Err(err) => {
+            println!("Could not read image file with path '{}'.", args.image_path);
+            println!("Error: {err}");
+            return;
+        }
     };
 
-    let image = image::open(img_path).unwrap();
-    let text_output = textify_my_img(image, output_width, output_height);
-
+    let text_output = textify_my_img(image, args.output_width, args.output_height);
     println!("{}", text_output);
 }
 
 fn print_help_message() {
     println!(
         "Usage: rusty-images <file-path> [output-width] [output-height]
-    
-    rusty-images is a command-line tool to generate text art from an image.
-    It uses the following Unicode block elements as output: \"{SHADING_CHARS}\".
 
-    Options:
-        <file-path>     required    Path to the input image file.
-        [output-width]  optional    Width of the output. Must be a valid u32.
-                                    Defaults to {DEFAULT_OUTPUT_SIZE}.
-        [output-height] optional    height of the output. Must be a valid u32.
-                                    Defaults to {DEFAULT_OUTPUT_SIZE}.
-    
-    Notes:
-        If neither [output-width] or [output-height] are provided, they will
-        be calculated based on the input image's aspect ratio. The larger value
-        between the height and width will become the default ({DEFAULT_OUTPUT_SIZE}), and the other
-        will be scaled down to maintain the correct aspect ratio for the image.
+rusty-images is a command-line tool to generate text art from an image.
+It uses the following Unicode block elements as output: \"{0}\".
 
-        If only one of [output-width] or [output-height] are provided, the other
-        will be calculated based on the aspect ratio of the input image.
-        For example: input image has 100 width & 200 height, the [output-width]
-        was provided as 25. The resulting output's height will be calculated as 50,
-        since the image's height is double its width.
+Arguments:
+    <file-path>     required    Path to the input image file.
+    [output-width]  optional    Width of the output. Must be a valid u32.
+                                Defaults to {1}.
+    [output-height] optional    height of the output. Must be a valid u32.
+                                Defaults to {1}.
+    -h | --help                 Prints the output that you are reading now.
 
-        Note that even if the output's height/width match the
-        aspect ratio of the input image's height/width, the result can look
-        distorted since characters usually aren't the same height and width. The 
-        [output-width] and [output-height] should be tweaked until the result
-        best matches the input image.
-    "
+Notes:
+    Even if the [output-width] and [output-height] match the
+    aspect ratio of the input image's height/width, the result can look
+    distorted since characters usually aren't the same height and width.
+    These values should be tweaked until the result best matches the
+    input image.
+",
+        SHADING_CHARS,
+        args_parser::CommandLineArgs::DEFAULT_OUTPUT_SIZE
     )
 }
 
