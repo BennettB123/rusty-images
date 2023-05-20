@@ -15,7 +15,7 @@ fn main() {
         Err(parse_error) => match parse_error {
             ArgsParsingError::NoFileProvided(err)
             | ArgsParsingError::CannotParseWidthOrHeight(err) => {
-                println!("{}", err);
+                eprintln!("{}", err);
                 return;
             }
             ArgsParsingError::HelpRequested => {
@@ -28,8 +28,8 @@ fn main() {
     let image = match image::open(&args.image_path) {
         Ok(img) => img,
         Err(err) => {
-            println!("Could not read image file with path '{}'.", args.image_path);
-            println!("Error: {err}\n");
+            eprintln!("Could not read image file with path '{}'.", args.image_path);
+            eprintln!("Error: {err}\n");
             return;
         }
     };
