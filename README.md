@@ -9,7 +9,7 @@ The tool requires the first command-line parameter to be a file path to an image
 
 ### Example
 
-![rust logo](docs/images/rust_logo.jpg)
+<img src="docs/images/rust_logo.jpg" width="200px" height="200px"/>
 
 Given the above image with a file path of `./docs/images/rust_logo.png`, Running the following command will produce the following output.
 
